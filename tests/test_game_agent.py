@@ -20,9 +20,16 @@ class IsolationTest(unittest.TestCase):
         self.player2 = "Player2"
         self.game = isolation.Board(self.player1, self.player2)
 
-    def test_example(self):
-        # TODO: All methods must start with "test_"
-        self.fail("Hello, World!")
+    # def test_example(self):
+    #     # TODO: All methods must start with "test_"
+
+    def test_terminal_test(self):
+        # Set for testing purposes
+        self.time_left = lambda : 10.0
+        self.TIMER_THRESHOLD = 10.0
+
+        # Returns true if depth = 0
+        self.assertTrue(game_agent.MinimaxPlayer.terminal_test(self, self.game, 0))
 
 
 if __name__ == '__main__':
