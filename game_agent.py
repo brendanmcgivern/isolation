@@ -369,21 +369,19 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        # raise NotImplementedError
-        # return (1, 1)
 
         best_score = float("-inf")
         best_move = (-1,-1)
         legal_moves = game.get_legal_moves()
 
         for m in legal_moves:
-            v = self.max_value(game.forecast_move(m), depth - 1, alpha, beta)
+            v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
             if v > best_score:
                 best_score = v
                 best_move = m
             alpha = max(alpha, best_score)
         return best_move
-        
+
 
     def terminal_test(self, gameState, depth):
         """ Return True if the game is over for the active player
