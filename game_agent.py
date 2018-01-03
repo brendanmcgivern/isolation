@@ -225,15 +225,6 @@ class MinimaxPlayer(IsolationPlayer):
         if self.time_left() < self.TIMER_THRESHOLD:
             raise SearchTimeout()
 
-        # TODO: finish this function!
-        # raise NotImplementedError
-
-
-        # self.score(game, game._active_player)
-
-
-        # return [(0,0)]
-
         best_score = float("-inf")
         best_move = (-1,-1)
         legal_moves = game.get_legal_moves()
@@ -260,7 +251,7 @@ class MinimaxPlayer(IsolationPlayer):
         otherwise return the minimum value over all legal child
         nodes.
         """
-        # +1 if it terminates at a min level
+        # If terminates on min_value it's _inactive_player / player 2's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._inactive_player)
             # return 1
@@ -277,10 +268,9 @@ class MinimaxPlayer(IsolationPlayer):
         otherwise return the maximum value over all legal child
         nodes.
         """
-        # -1 if it terminates at a max level
+        # If terminates on max_value it's _active_player / player 1's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._active_player)
-            # return -1
 
         v = float("-inf")
         max_legal_moves = gameState.get_legal_moves()
@@ -379,9 +369,73 @@ class AlphaBetaPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         # TODO: finish this function!
-        raise NotImplementedError
+        # raise NotImplementedError
+        # return (1, 1)
+
+        best_score = float("-inf")
+        best_move = (-1,-1)
+        legal_moves = game.get_legal_moves()
+
+        for m in legal_moves:
+            v = self.max_value(game.forecast_move(m), depth - 1, alpha, beta)
+            if v > best_score:
+                best_score = v
+                best_move = m
+            alpha = max(alpha, best_score)
+        return best_move
+        
+
+    def terminal_test(self, gameState, depth):
+        """ Return True if the game is over for the active player
+        and False otherwise.
+        """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
+        return not bool(gameState.get_legal_moves()) or depth <= 0
 
 
+    # If out of moves on a MAX level - Computer is out of moves and loses
+    def max_value(self, gameState, depth, alpha, beta):
+        """ Return the value for a loss (-1) if the game is over,
+        otherwise return the maximum value over all legal child
+        nodes.
+        """
+        # If terminates on max_value it's _active_player / player 1's turn
+        if self.terminal_test(gameState, depth):
+            return self.score(gameState, gameState._active_player)
+
+        v = float("-inf")
+        max_legal_moves = gameState.get_legal_moves()
+        for m in max_legal_moves:
+            v = max(v, self.min_value(gameState.forecast_move(m), depth - 1, alpha, beta))
+            if v >= beta:
+                return v
+            alpha = max(alpha, v)
+
+        return v
+
+
+    # If out of moves on a MIN level - Opponenet is out of moves and loses
+    def min_value(self, gameState, depth, alpha, beta):
+        """ Return the value for a win (+1) if the game is over,
+        otherwise return the minimum value over all legal child
+        nodes.
+        """
+        # If terminates on min_value it's _inactive_player / player 2's turn
+        if self.terminal_test(gameState, depth):
+            return self.score(gameState, gameState._inactive_player)
+            # return 1
+
+        v = float("inf")
+        min_legal_moves=gameState.get_legal_moves()
+        for m in min_legal_moves:
+            v = min(v, self.max_value(gameState.forecast_move(m), depth - 1, alpha, beta))
+            if v <= alpha:
+                return v
+            beta = min(beta, v)
+
+        return v
 
 
 # ALL MY TEST CODE
