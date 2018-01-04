@@ -35,7 +35,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    # raise NotImplementedError
     # print('hey ')
     # print(game.get_legal_moves(player))
 
@@ -50,6 +50,10 @@ def custom_score(game, player):
 
     # *********
 
+    my_moves = game.get_legal_moves(player)
+    opponents_moves = game.get_legal_moves(game.get_opponent(player))
+    mm = len(my_moves) - len(opponents_moves)
+    return float(mm)
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -318,7 +322,29 @@ class AlphaBetaPlayer(IsolationPlayer):
         self.time_left = time_left
 
         # TODO: finish this function!
-        raise NotImplementedError
+        # raise NotImplementedError
+
+        # Initialize the best move so that this function returns something
+        # in case the search fails due to timeout
+        best_move = (-1, -1)
+        depth = 1
+
+        try:
+            # The try/except block will automatically catch the exception raised when the timer is about to expire.
+
+            while True:
+                move = self.alphabeta(game, depth)
+                best_move = move
+                depth += 1
+
+            # return self.alphabeta(game, self.search_depth)
+
+        except SearchTimeout:
+            pass  # Handle any actions required after timeout as needed
+
+        # Return the best move from the last completed search iteration
+        return best_move
+
 
     def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
         """Implement depth-limited minimax search with alpha-beta pruning as
