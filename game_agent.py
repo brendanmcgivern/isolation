@@ -45,6 +45,10 @@ def custom_score(game, player):
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(my_moves - opp_moves)
 
+
+    # get_player_location()
+
+
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
     of the given player.
@@ -104,7 +108,17 @@ def custom_score_3(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    # raise NotImplementedError
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
+    return float((h - y)**2 + (w - x)**2)
 
 
 class IsolationPlayer:
@@ -324,9 +338,20 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: finish this function!
         # raise NotImplementedError
 
+        # center of board
+        # if game.move_count == 0:
+            # return(int(game.height/2), int(game.width/2))
+
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
         best_move = (-1, -1)
+
+        if len(game.get_legal_moves()) != 0:
+            best_move = game.get_legal_moves()[0]
+
+        if not len(game.get_legal_moves()):
+            return (-1, -1) 
+
         depth = 1
 
         try:
@@ -406,6 +431,7 @@ class AlphaBetaPlayer(IsolationPlayer):
                 best_score = v
                 best_move = m
             alpha = max(alpha, best_score)
+
         return best_move
 
 
@@ -473,7 +499,49 @@ class AlphaBetaPlayer(IsolationPlayer):
 # player2 = RandomPlayer()
 # game = Board(player1, player2)
 
+# ab = AlphaBetaPlayer()
 # mp = MinimaxPlayer()
+
+# print(game.get_legal_moves())
+
+# good_move = mp.get_move(game, lambda : 10.0)
+
+# print(good_move)
+
+# game.apply_move(good_move)
+
+# print(game.get_legal_moves())
+
+# game.apply_move((2, 3))
+# game.apply_move((2, 1))
+
+# cc = custom_score(game, player1)
+
+# print(cc)
+
+
+
+
+
+
+
+
+# more_moves = mp.get_move(game, lambda : 10.0)
+
+# print(more_moves)
+
+# game.apply_move(good_move)
+
+# ll = mp.get_move(game, lambda : 10.0)
+
+# print(ll)
+
+
+
+
+
+
+
 
 # mp.get_move(game, lambda : 10.0)
 
@@ -485,3 +553,20 @@ class AlphaBetaPlayer(IsolationPlayer):
 # game.apply_move((2, 4))
 
 # mp.score(game, player1)
+
+
+
+
+
+
+
+
+
+# import time
+# now = time.time()
+# future = now + 3
+
+# def tim():
+#     while True:
+#         if now > future:
+#             break
