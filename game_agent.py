@@ -34,26 +34,16 @@ def custom_score(game, player):
     float
         The heuristic value of the current game state to the specified player.
     """
-    # TODO: finish this function!
-    # raise NotImplementedError
-    # print('hey ')
-    # print(game.get_legal_moves(player))
 
+    if game.is_loser(player):
+        return float("-inf")
 
-    # *********
+    if game.is_winner(player):
+        return float("inf")
 
-    # my_moves = game.get_legal_moves(player1)
-    # opponents_moves = game.get_legal_moves(player2)
-    # return my_moves - opponents_moves
-
-    # game.get_legal_moves(game.get_opponent(player))
-
-    # *********
-
-    my_moves = game.get_legal_moves(player)
-    opponents_moves = game.get_legal_moves(game.get_opponent(player))
-    mm = len(my_moves) - len(opponents_moves)
-    return float(mm)
+    my_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(my_moves - opp_moves)
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -78,7 +68,17 @@ def custom_score_2(game, player):
         The heuristic value of the current game state to the specified player.
     """
     # TODO: finish this function!
-    raise NotImplementedError
+    # raise NotImplementedError
+
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    my_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(my_moves - 2 * opp_moves)
 
 
 def custom_score_3(game, player):
