@@ -36,20 +36,38 @@ def custom_score(game, player):
     """
 
     # --- GOOD ----
+    # if game.is_loser(player):
+    #     return float("-inf")
+
+    # if game.is_winner(player):
+    #     return float("inf")
+
+    my_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    # return float(my_moves - opp_moves)
+    # --- GOOD ----
+
+
     if game.is_loser(player):
         return float("-inf")
 
     if game.is_winner(player):
         return float("inf")
 
-    my_moves = len(game.get_legal_moves(player))
-    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(my_moves - opp_moves)
-    # --- GOOD ----
+    pos = game.get_player_location(player)
+
+    # Make sure pos tuple doesnt contain 0's or boards height or width - that means its on the edge
+    # BAD
+    if pos[0] == 0 or pos[0] == game.width-1 or pos[1] == 0 or pos[1] == game.width-1:
+        # print('PAN ', my_moves - opp_moves)
+        return float(my_moves - opp_moves)
+    else:
+        # print('PETER ', my_moves)
+        return my_moves
+    
+    
 
     # get_player_location(game.get_opponent(player))
-
-
 
     # if len(game.get_legal_moves(player)) == 1 and game.get_legal_moves(player)[0] == (2, 2):
     #     return float(20)
@@ -205,6 +223,14 @@ class MinimaxPlayer(IsolationPlayer):
         #     return(int(game.height/2), int(game.width/2))
 
         legal_moves = game.get_legal_moves()
+
+        # center of board
+        if game.move_count == 0:
+            return(int(game.height/2), int(game.width/2))
+
+        # center of board - when i am player 2
+        if game.move_count == 1 and (int(game.height/2), int(game.width/2)) in legal_moves:
+            return(int(game.height/2), int(game.width/2))
 
         if not len(legal_moves):
             return (-1, -1)
@@ -381,11 +407,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         # center of board - when i am player 2
         if game.move_count == 1 and (int(game.height/2), int(game.width/2)) in legal_moves:
             return(int(game.height/2), int(game.width/2))
-
+        
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-
-        
         if not len(legal_moves):
             return (-1, -1)
     
@@ -398,6 +422,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
             while True:
                 move = self.alphabeta(game, depth)
+                print('depth --- ', depth)
                 best_move = move
                 depth += 1
 
@@ -541,26 +566,64 @@ class AlphaBetaPlayer(IsolationPlayer):
         return v
 
 
+
+def board_to_matrix(board):
+    r = np.zeros((board.height, board.width))
+    p1_loc = board._board_state[-1]
+    p2_loc = board._board_state[-2]
+
+    for i in range(board.height):
+        for j in range(board.width):
+            idx = i + j * board.height
+            if board._board_state[idx]:
+                if idx == p1_loc:
+                    r[i,j] = 1
+                elif idx == p2_loc:
+                    r[i,j] = 2
+                else:
+                    r[i,j] = -1
+    return r
+
+
+
 # ALL MY TEST CODE
 from isolation import Board
 from sample_players import RandomPlayer
 from sample_players import GreedyPlayer
-
+import numpy as np
 print('--- STARTING ---')
 
-# player1 = AlphaBetaPlayer()
-# player2 = RandomPlayer()
+player1 = AlphaBetaPlayer()
+player2 = GreedyPlayer()
 
-player1 = RandomPlayer()
-player2 = AlphaBetaPlayer()
+# player1 = RandomPlayer()
+# player2 = AlphaBetaPlayer()
+
 
 game = Board(player1, player2)
+
+
+
+
+# game_matrix= board_to_matrix(game)
+# print(game_matrix)
+
+# rotate_90 = list(zip(*game_matrix[::-1]))
+# print(rotate_90)
 
 winner, history, outcome = game.play()
 
 print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
 print(game.to_string())
 print("Move history:\n{!s}".format(history))
+
+
+
+
+
+
+
+
 
 # print(game.get_legal_moves())
 
