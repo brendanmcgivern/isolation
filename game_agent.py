@@ -35,6 +35,7 @@ def custom_score(game, player):
         The heuristic value of the current game state to the specified player.
     """
 
+    # --- GOOD ----
     if game.is_loser(player):
         return float("-inf")
 
@@ -44,9 +45,18 @@ def custom_score(game, player):
     my_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
     return float(my_moves - opp_moves)
+    # --- GOOD ----
+
+    # get_player_location(game.get_opponent(player))
 
 
-    # get_player_location()
+
+    # if len(game.get_legal_moves(player)) == 1 and game.get_legal_moves(player)[0] == (2, 2):
+    #     return float(20)
+    # else:
+    #     my_moves = len(game.get_legal_moves(player))
+    #     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    #     return float(my_moves - opp_moves)
 
 
 def custom_score_2(game, player):
@@ -188,7 +198,18 @@ class MinimaxPlayer(IsolationPlayer):
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
+        # best_move = (-1, -1)
+
+        # center of board
+        # if game.move_count == 0:
+        #     return(int(game.height/2), int(game.width/2))
+
+        legal_moves = game.get_legal_moves()
+
+        if not len(legal_moves):
+            return (-1, -1)
+    
+        best_move = legal_moves[0]
 
         try:
             # The try/except block will automatically catch the exception
@@ -244,8 +265,15 @@ class MinimaxPlayer(IsolationPlayer):
             raise SearchTimeout()
 
         best_score = float("-inf")
-        best_move = (-1,-1)
+        # best_move = (-1,-1)
+        # legal_moves = game.get_legal_moves()
+
         legal_moves = game.get_legal_moves()
+
+        if not len(legal_moves):
+            return (-1, -1)
+    
+        best_move = legal_moves[0]
 
         for m in legal_moves:
             v = self.min_value(game.forecast_move(m), depth - 1)
@@ -269,6 +297,9 @@ class MinimaxPlayer(IsolationPlayer):
         otherwise return the minimum value over all legal child
         nodes.
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         # If terminates on min_value it's _inactive_player / player 2's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._inactive_player)
@@ -286,6 +317,9 @@ class MinimaxPlayer(IsolationPlayer):
         otherwise return the maximum value over all legal child
         nodes.
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         # If terminates on max_value it's _active_player / player 1's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._active_player)
@@ -338,19 +372,24 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: finish this function!
         # raise NotImplementedError
 
+        legal_moves = game.get_legal_moves()
+
         # center of board
-        # if game.move_count == 0:
-            # return(int(game.height/2), int(game.width/2))
+        if game.move_count == 0:
+            return(int(game.height/2), int(game.width/2))
+
+        # center of board - when i am player 2
+        if game.move_count == 1 and (int(game.height/2), int(game.width/2)) in legal_moves:
+            return(int(game.height/2), int(game.width/2))
 
         # Initialize the best move so that this function returns something
         # in case the search fails due to timeout
-        best_move = (-1, -1)
 
-        if len(game.get_legal_moves()) != 0:
-            best_move = game.get_legal_moves()[0]
-
-        if not len(game.get_legal_moves()):
-            return (-1, -1) 
+        
+        if not len(legal_moves):
+            return (-1, -1)
+    
+        best_move = legal_moves[0]
 
         depth = 1
 
@@ -422,8 +461,16 @@ class AlphaBetaPlayer(IsolationPlayer):
         # TODO: finish this function!
 
         best_score = float("-inf")
-        best_move = (-1,-1)
+        # best_move = (-1,-1)
+
         legal_moves = game.get_legal_moves()
+
+        if not len(legal_moves):
+            return (-1, -1)
+    
+        best_move = legal_moves[0]
+
+        # legal_moves = game.get_legal_moves()
 
         for m in legal_moves:
             v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
@@ -451,6 +498,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         otherwise return the maximum value over all legal child
         nodes.
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         # If terminates on max_value it's _active_player / player 1's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._active_player)
@@ -472,6 +522,9 @@ class AlphaBetaPlayer(IsolationPlayer):
         otherwise return the minimum value over all legal child
         nodes.
         """
+        if self.time_left() < self.TIMER_THRESHOLD:
+            raise SearchTimeout()
+
         # If terminates on min_value it's _inactive_player / player 2's turn
         if self.terminal_test(gameState, depth):
             return self.score(gameState, gameState._inactive_player)
@@ -489,26 +542,37 @@ class AlphaBetaPlayer(IsolationPlayer):
 
 
 # ALL MY TEST CODE
-# from isolation import Board
-# from sample_players import RandomPlayer
-# from sample_players import GreedyPlayer
+from isolation import Board
+from sample_players import RandomPlayer
+from sample_players import GreedyPlayer
 
-# print('--- STARTING ---')
+print('--- STARTING ---')
 
-# player1 = GreedyPlayer()
+# player1 = AlphaBetaPlayer()
 # player2 = RandomPlayer()
-# game = Board(player1, player2)
 
-# ab = AlphaBetaPlayer()
-# mp = MinimaxPlayer()
+player1 = RandomPlayer()
+player2 = AlphaBetaPlayer()
+
+game = Board(player1, player2)
+
+winner, history, outcome = game.play()
+
+print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+print(game.to_string())
+print("Move history:\n{!s}".format(history))
 
 # print(game.get_legal_moves())
 
-# good_move = mp.get_move(game, lambda : 10.0)
+# good_move = ab.get_move(game, lambda : 10.0)
 
 # print(good_move)
 
 # game.apply_move(good_move)
+
+# good_move2 = mp.get_move(game, lambda : 10.0)
+
+# print(good_move2)
 
 # print(game.get_legal_moves())
 
