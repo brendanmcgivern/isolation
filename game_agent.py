@@ -56,7 +56,7 @@ def custom_score(game, player):
 
     pos = game.get_player_location(player)
 
-    # Make sure pos tuple doesnt contain 0's or boards height or width - that means its on the edge
+    # Make sure pos tuple doesnt contain 0's or boards height or width - that means its on the permimeter
     # BAD
     if pos[0] == 0 or pos[0] == game.width-1 or pos[1] == 0 or pos[1] == game.width-1:
         # print('PAN ', my_moves - opp_moves)
@@ -67,15 +67,10 @@ def custom_score(game, player):
     
     
 
-    # get_player_location(game.get_opponent(player))
-
-    # if len(game.get_legal_moves(player)) == 1 and game.get_legal_moves(player)[0] == (2, 2):
-    #     return float(20)
-    # else:
-    #     my_moves = len(game.get_legal_moves(player))
-    #     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    #     return float(my_moves - opp_moves)
-
+    # implement corner heuristic!
+    # rewarding opponent on corner!
+    # if player == game._inactive_player
+        # - .score called on min - reward corner
 
 def custom_score_2(game, player):
     """Calculate the heuristic value of a game state from the point of view
@@ -110,7 +105,17 @@ def custom_score_2(game, player):
 
     my_moves = len(game.get_legal_moves(player))
     opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
-    return float(my_moves - 2 * opp_moves)
+
+    pos = game.get_player_location(player)
+
+
+    if pos == (0, 0) or pos == (0, 6) or pos == (6, 6) or pos == (6, 0):
+        if player == game._active_player:
+            return -10
+        elif player == game._inactive_player:
+            return float(my_moves)
+    else:
+        return float((my_moves - opp_moves) ** 2)
 
 
 def custom_score_3(game, player):
@@ -171,7 +176,7 @@ class IsolationPlayer:
         positive value large enough to allow the function to return before the
         timer expires.
     """
-    def __init__(self, search_depth=3, score_fn=custom_score, timeout=10.):
+    def __init__(self, search_depth=3, score_fn=custom_score, timeout=20.):
         self.search_depth = search_depth
         self.score = score_fn
         self.time_left = None
@@ -224,6 +229,10 @@ class MinimaxPlayer(IsolationPlayer):
 
         legal_moves = game.get_legal_moves()
 
+        # If no legal moves left
+        if not len(legal_moves):
+            return (-1, -1)
+
         # center of board
         if game.move_count == 0:
             return(int(game.height/2), int(game.width/2))
@@ -231,10 +240,8 @@ class MinimaxPlayer(IsolationPlayer):
         # center of board - when i am player 2
         if game.move_count == 1 and (int(game.height/2), int(game.width/2)) in legal_moves:
             return(int(game.height/2), int(game.width/2))
-
-        if not len(legal_moves):
-            return (-1, -1)
-    
+        
+        # Set best move to return at minimum some move
         best_move = legal_moves[0]
 
         try:
@@ -395,10 +402,11 @@ class AlphaBetaPlayer(IsolationPlayer):
         """
         self.time_left = time_left
 
-        # TODO: finish this function!
-        # raise NotImplementedError
-
         legal_moves = game.get_legal_moves()
+
+        # If not legal moves left
+        if not len(legal_moves):
+            return (-1, -1)
 
         # center of board
         if game.move_count == 0:
@@ -408,11 +416,7 @@ class AlphaBetaPlayer(IsolationPlayer):
         if game.move_count == 1 and (int(game.height/2), int(game.width/2)) in legal_moves:
             return(int(game.height/2), int(game.width/2))
         
-        # Initialize the best move so that this function returns something
-        # in case the search fails due to timeout
-        if not len(legal_moves):
-            return (-1, -1)
-    
+        # Set best move to return at minimum some move
         best_move = legal_moves[0]
 
         depth = 1
@@ -422,7 +426,7 @@ class AlphaBetaPlayer(IsolationPlayer):
 
             while True:
                 move = self.alphabeta(game, depth)
-                print('depth --- ', depth)
+                # print('depth --- ', depth)
                 best_move = move
                 depth += 1
 
@@ -495,14 +499,19 @@ class AlphaBetaPlayer(IsolationPlayer):
     
         best_move = legal_moves[0]
 
-        # legal_moves = game.get_legal_moves()
+        my_dict = {}
+        ww = game.width - 1
+        hh = game.height - 1
 
         for m in legal_moves:
+            
             v = self.min_value(game.forecast_move(m), depth - 1, alpha, beta)
+            
             if v > best_score:
                 best_score = v
                 best_move = m
             alpha = max(alpha, best_score)
+            # beta = min(beta, best_score)
 
         return best_move
 
@@ -528,12 +537,14 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # If terminates on max_value it's _active_player / player 1's turn
         if self.terminal_test(gameState, depth):
-            return self.score(gameState, gameState._active_player)
+            return self.score(gameState, self)
 
         v = float("-inf")
         max_legal_moves = gameState.get_legal_moves()
         for m in max_legal_moves:
+            
             v = max(v, self.min_value(gameState.forecast_move(m), depth - 1, alpha, beta))
+
             if v >= beta:
                 return v
             alpha = max(alpha, v)
@@ -552,13 +563,15 @@ class AlphaBetaPlayer(IsolationPlayer):
 
         # If terminates on min_value it's _inactive_player / player 2's turn
         if self.terminal_test(gameState, depth):
-            return self.score(gameState, gameState._inactive_player)
+            return self.score(gameState, self)
             # return 1
 
         v = float("inf")
         min_legal_moves=gameState.get_legal_moves()
         for m in min_legal_moves:
+            
             v = min(v, self.max_value(gameState.forecast_move(m), depth - 1, alpha, beta))
+
             if v <= alpha:
                 return v
             beta = min(beta, v)
@@ -566,56 +579,85 @@ class AlphaBetaPlayer(IsolationPlayer):
         return v
 
 
+# def board_to_matrix(board):
+#     r = np.zeros((board.height, board.width))
+#     p1_loc = board._board_state[-1]
+#     p2_loc = board._board_state[-2]
 
-def board_to_matrix(board):
-    r = np.zeros((board.height, board.width))
-    p1_loc = board._board_state[-1]
-    p2_loc = board._board_state[-2]
-
-    for i in range(board.height):
-        for j in range(board.width):
-            idx = i + j * board.height
-            if board._board_state[idx]:
-                if idx == p1_loc:
-                    r[i,j] = 1
-                elif idx == p2_loc:
-                    r[i,j] = 2
-                else:
-                    r[i,j] = -1
-    return r
+#     for i in range(board.height):
+#         for j in range(board.width):
+#             idx = i + j * board.height
+#             if board._board_state[idx]:
+#                 if idx == p1_loc:
+#                     r[i,j] = 1
+#                 elif idx == p2_loc:
+#                     r[i,j] = 2
+#                 else:
+#                     r[i,j] = -1
+#     return r
 
 
 
 # ALL MY TEST CODE
-from isolation import Board
-from sample_players import RandomPlayer
-from sample_players import GreedyPlayer
-import numpy as np
-print('--- STARTING ---')
+# from isolation import Board
+# from sample_players import RandomPlayer
+# from sample_players import GreedyPlayer
+# import numpy as np
+# print('--- STARTING ---')
 
-player1 = AlphaBetaPlayer()
-player2 = GreedyPlayer()
+# player1 = AlphaBetaPlayer()
+# player2 = GreedyPlayer()
 
 # player1 = RandomPlayer()
 # player2 = AlphaBetaPlayer()
 
-
-game = Board(player1, player2)
-
+# game = Board(player1, player2)
 
 
 
-# game_matrix= board_to_matrix(game)
+
+# m = (0, 3)
+
+# game_matrix = board_to_matrix(game)
+# game_matrix[m[0]][m[1]] = 22
 # print(game_matrix)
 
-# rotate_90 = list(zip(*game_matrix[::-1]))
+# print('-----')
+
+# rotate_90 = np.array(list(zip(*game_matrix[::-1])))
+# rotate_180 = np.array(list(zip(*rotate_90[::-1])))
+# rotate_270 = np.array(list(zip(*rotate_180[::-1])))
+
 # print(rotate_90)
 
-winner, history, outcome = game.play()
+# itemindex = np.where(rotate_90==22)
+# print((itemindex[0][0], itemindex[1][0]))
 
-print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
-print(game.to_string())
-print("Move history:\n{!s}".format(history))
+# print('-----')
+# print(rotate_180)
+# itemindex2 = np.where(rotate_180==22)
+# print((itemindex2[0][0], itemindex2[1][0]))
+
+# print('-----')
+# print(rotate_270)
+# itemindex3 = np.where(rotate_270==22)
+# print((itemindex3[0][0], itemindex3[1][0]))
+
+
+
+
+# winner, history, outcome = game.play()
+
+# print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
+# print(game.to_string())
+# print("Move history:\n{!s}".format(history))
+
+
+
+
+
+
+
 
 
 
